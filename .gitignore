@@ -1,0 +1,16 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+chroma_db/
+reports/*.md
+reports/*.txt
+!reports/.gitkeep
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+users.json
+activity_log.json

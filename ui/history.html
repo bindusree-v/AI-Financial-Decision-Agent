@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>FDS AI — Report History</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#060b18;color:#e2e8f0;min-height:100vh;overflow-x:hidden}
+.bg-grid{background-image:linear-gradient(rgba(0,212,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.03) 1px,transparent 1px);background-size:48px 48px}
+.glass{background:rgba(13,20,36,.78);backdrop-filter:blur(18px);border:1px solid rgba(0,212,255,.15);border-radius:16px}
+.glass-nav{background:rgba(10,15,30,.94);backdrop-filter:blur(24px);border-bottom:1px solid rgba(0,212,255,.1)}
+.nav-dot{width:10px;height:10px;border-radius:50%;background:#00d4ff;display:inline-block;position:relative}
+.nav-dot::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;border:1px solid rgba(0,212,255,.5);animation:pulse-ring 2s ease-out infinite}
+@keyframes pulse-ring{0%{transform:translate(-50%,-50%) scale(.8);opacity:1}100%{transform:translate(-50%,-50%) scale(2.4);opacity:0}}
+.orb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0}
+.orb-1{width:500px;height:500px;background:rgba(0,102,255,.07);top:-150px;right:-100px;animation:float 9s ease-in-out infinite}
+.orb-2{width:350px;height:350px;background:rgba(124,58,237,.06);bottom:0;left:-80px;animation:float 12s ease-in-out infinite reverse}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+.scanline{position:fixed;left:0;right:0;height:2px;top:-2px;background:linear-gradient(90deg,transparent,rgba(0,212,255,.25),transparent);animation:scan 10s linear infinite;pointer-events:none;z-index:999}
+@keyframes scan{0%{top:-2px}100%{top:100vh}}
+.content-layer{position:relative;z-index:1}
+.gradient-text{background:linear-gradient(135deg,#00d4ff,#0066ff,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+/* Report card */
+.report-card{background:rgba(8,12,24,.7);border:1px solid rgba(0,212,255,.1);border-radius:14px;transition:all .25s ease;cursor:pointer}
+.report-card:hover{border-color:rgba(0,212,255,.35);background:rgba(0,212,255,.05);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,212,255,.1)}
+.sector-pill{display:inline-flex;align-items:center;padding:.2rem .65rem;border-radius:20px;font-size:.65rem;font-weight:700;letter-spacing:.06em}
+.sector-IT{background:rgba(0,212,255,.15);color:#00d4ff;border:1px solid rgba(0,212,255,.3)}
+.sector-PHARMA{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.sector-BANKING{background:rgba(0,255,136,.12);color:#00ff88;border:1px solid rgba(0,255,136,.25)}
+.sector-FINTECH{background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.25)}
+.sector-ENERGY{background:rgba(251,146,60,.12);color:#fb923c;border:1px solid rgba(251,146,60,.25)}
+.sector-AUTOMOTIVE{background:rgba(99,102,241,.15);color:#818cf8;border:1px solid rgba(99,102,241,.3)}
+.sector-FMCG{background:rgba(236,72,153,.12);color:#f472b6;border:1px solid rgba(236,72,153,.25)}
+.sector-TELECOM{background:rgba(20,184,166,.12);color:#2dd4bf;border:1px solid rgba(20,184,166,.25)}
+.sector-INFRASTRUCTURE{background:rgba(234,179,8,.12);color:#facc15;border:1px solid rgba(234,179,8,.25)}
+.sector-METALS{background:rgba(156,163,175,.12);color:#9ca3af;border:1px solid rgba(156,163,175,.25)}
+.sector-ECOMMERCE{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.25)}
+.sector-HEALTHCARE{background:rgba(52,211,153,.12);color:#34d399;border:1px solid rgba(52,211,153,.25)}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal-box{background:rgba(10,16,32,.97);border:1px solid rgba(0,212,255,.2);border-radius:20px;width:100%;max-width:860px;padding:2rem;position:relative;animation:modalIn .3s ease}
+@keyframes modalIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.modal-close{position:absolute;top:1rem;right:1rem;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.2);color:#64748b;border-radius:8px;padding:.35rem .65rem;cursor:pointer;font-size:.8rem;transition:all .2s}
+.modal-close:hover{color:#00d4ff;border-color:#00d4ff}
+/* Report content */
+.report-content h1{font-size:1.35rem;font-weight:700;color:#00d4ff;margin:1.2rem 0 .6rem}
+.report-content h2{font-size:1.1rem;font-weight:600;color:#60a5fa;margin:1rem 0 .45rem;border-bottom:1px solid rgba(0,212,255,.12);padding-bottom:.3rem}
+.report-content h3{font-size:.95rem;font-weight:600;color:#a78bfa;margin:.85rem 0 .35rem}
+.report-content p{color:#cbd5e1;line-height:1.8;margin-bottom:.65rem;font-size:.88rem}
+.report-content ul{list-style:none;padding-left:0;margin-bottom:.65rem}
+.report-content ul li{color:#cbd5e1;padding:.2rem 0 .2rem 1.4rem;position:relative;font-size:.88rem}
+.report-content ul li::before{content:'▸';position:absolute;left:0;color:#00d4ff}
+.report-content strong{color:#e2e8f0;font-weight:600}
+.report-content table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.8rem}
+.report-content th{background:rgba(0,212,255,.1);color:#00d4ff;padding:.5rem .85rem;text-align:left;border:1px solid rgba(0,212,255,.2);font-weight:600}
+.report-content td{padding:.45rem .85rem;border:1px solid rgba(0,212,255,.1);color:#cbd5e1}
+.report-content tr:nth-child(even) td{background:rgba(0,212,255,.03)}
+.report-content code{background:rgba(0,212,255,.1);color:#00d4ff;padding:.1rem .35rem;border-radius:4px;font-size:.8rem}
+/* Search */
+.search-input{background:rgba(8,12,24,.88);border:1px solid rgba(0,212,255,.18);color:#e2e8f0;outline:none;transition:all .3s}
+.search-input:focus{border-color:rgba(0,212,255,.55);box-shadow:0 0 20px rgba(0,212,255,.12)}
+.search-input::placeholder{color:#334155}
+/* Skeleton */
+.skeleton{background:linear-gradient(90deg,rgba(0,212,255,.05) 25%,rgba(0,212,255,.1) 50%,rgba(0,212,255,.05) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
+@keyframes shimmer{0%{background-position:200% center}100%{background-position:-200% center}}
+.btn-ghost{background:transparent;border:1px solid rgba(0,212,255,.25);color:#94a3b8;font-weight:500;cursor:pointer;transition:all .3s ease;border-radius:8px;padding:.4rem .9rem;font-size:.78rem}
+.btn-ghost:hover{border-color:rgba(0,212,255,.5);color:#00d4ff;background:rgba(0,212,255,.06)}
+.hidden{display:none!important}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:rgba(0,0,0,.2)}
+::-webkit-scrollbar-thumb{background:rgba(0,212,255,.28);border-radius:3px}
+</style>
+</head>
+<body class="bg-grid">
+<div class="orb orb-1"></div><div class="orb orb-2"></div>
+<div class="scanline"></div>
+
+<!-- Nav -->
+<nav class="glass-nav fixed top-0 left-0 right-0 z-50 px-6 py-3 flex items-center justify-between">
+  <div class="flex items-center gap-3">
+    <span class="nav-dot"></span>
+    <a href="/" class="text-sm font-bold tracking-widest text-cyan-400 uppercase hover:text-cyan-300 transition-colors">FDS AI</a>
+    <span class="text-xs text-slate-600">/ Report History</span>
+  </div>
+  <div class="flex items-center gap-3">
+    <a href="/" class="text-xs text-slate-500 hover:text-cyan-400 transition-colors border border-slate-700 hover:border-cyan-500/40 px-2 py-1 rounded-lg flex items-center gap-1">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Research
+    </a>
+    <a href="/profile" class="text-xs text-slate-500 hover:text-cyan-400 transition-colors border border-slate-700 hover:border-cyan-500/40 px-2 py-1 rounded-lg flex items-center gap-1">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Profile
+    </a>
+    <button onclick="logout()" class="text-xs text-slate-500 hover:text-red-400 transition-colors border border-slate-700 hover:border-red-500/40 px-2 py-1 rounded-lg flex items-center gap-1">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Logout
+    </button>
+  </div>
+</nav>
+
+<div class="content-layer pt-20 pb-16 px-4 max-w-5xl mx-auto">
+
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold gradient-text mb-2">Report History</h1>
+    <p class="text-slate-500 text-sm">All your generated research reports in one place</p>
+  </div>
+
+  <!-- Stats + Search row -->
+  <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+    <div class="flex gap-4">
+      <div class="glass px-4 py-2 rounded-xl text-center">
+        <div id="totalCount" class="text-xl font-bold text-cyan-400 font-mono">—</div>
+        <div class="text-xs text-slate-500 mt-0.5">Total Reports</div>
+      </div>
+      <div class="glass px-4 py-2 rounded-xl text-center">
+        <div id="sectorCount" class="text-xl font-bold text-purple-400 font-mono">—</div>
+        <div class="text-xs text-slate-500 mt-0.5">Sectors</div>
+      </div>
+    </div>
+    <div class="relative">
+      <input type="text" id="searchInput" class="search-input rounded-xl px-4 py-2 pl-9 text-sm w-64" placeholder="Search reports…" oninput="filterReports()"/>
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
+  </div>
+
+  <!-- Report list -->
+  <div id="reportList" class="space-y-3"></div>
+  <div id="emptyState" class="hidden text-center py-20">
+    <div class="text-5xl mb-4">📋</div>
+    <div class="text-slate-400 text-sm">No reports found</div>
+    <a href="/" class="inline-block mt-4 text-xs text-cyan-400 border border-cyan-500/30 px-4 py-2 rounded-lg hover:bg-cyan-500/10 transition-colors">Start a Research →</a>
+  </div>
+  <div id="loadingState" class="space-y-3">
+    <div class="skeleton h-20 w-full"></div>
+    <div class="skeleton h-20 w-full"></div>
+    <div class="skeleton h-20 w-full"></div>
+  </div>
+
+</div>
+
+<!-- Report Modal -->
+<div class="modal-overlay" id="reportModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕ Close</button>
+    <div class="flex items-center gap-3 mb-4 flex-wrap pr-16">
+      <span id="modalSector" class="sector-pill sector-IT">IT</span>
+      <span id="modalDate" class="text-xs text-slate-500"></span>
+      <button onclick="downloadCurrent()" class="btn-ghost ml-auto flex items-center gap-1">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download
+      </button>
+    </div>
+    <div id="modalContent" class="report-content max-h-[70vh] overflow-y-auto pr-2"></div>
+  </div>
+</div>
+
+<script>
+const API = '';
+let allReports = [];
+let currentReport = null;
+
+// Auth guard
+(function(){
+  if(!localStorage.getItem('fintel_token')){ window.location.href='/login'; }
+})();
+
+function authHeaders(){
+  return {'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('fintel_token')||'')};
+}
+
+async function logout(){
+  try{ await fetch('/api/logout',{method:'POST',headers:authHeaders(),credentials:'include'}); }catch(e){}
+  localStorage.clear(); window.location.href='/login';
+}
+
+async function loadReports(){
+  try{
+    const res = await fetch('/api/reports',{headers:authHeaders(),credentials:'include'});
+    if(res.status===401){window.location.href='/login';return;}
+    const data = await res.json();
+    allReports = data.reports || [];
+    document.getElementById('loadingState').classList.add('hidden');
+    renderReports(allReports);
+  }catch(e){
+    document.getElementById('loadingState').classList.add('hidden');
+    document.getElementById('emptyState').classList.remove('hidden');
+  }
+}
+
+function renderReports(reports){
+  const list = document.getElementById('reportList');
+  const empty = document.getElementById('emptyState');
+  list.innerHTML = '';
+
+  // Stats
+  const sectors = [...new Set(reports.map(r=>r.sector))];
+  document.getElementById('totalCount').textContent = reports.length;
+  document.getElementById('sectorCount').textContent = sectors.length;
+
+  if(reports.length===0){ empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+
+  reports.forEach(r=>{
+    const card = document.createElement('div');
+    card.className = 'report-card p-4 flex items-start gap-4';
+    card.onclick = ()=>openReport(r);
+    const sectorClass = 'sector-'+r.sector.toUpperCase();
+    card.innerHTML = `
+      <div class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-lg" style="background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.15)">📄</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 mb-1 flex-wrap">
+          <span class="sector-pill ${sectorClass}">${r.sector}</span>
+          <span class="text-xs text-slate-500">${r.date}</span>
+          <span class="text-xs text-slate-600 ml-auto">${r.size_kb} KB</span>
+        </div>
+        <div class="text-sm text-slate-200 font-medium truncate">${r.title}</div>
+        <div class="text-xs text-slate-600 mt-0.5 truncate">${r.filename}</div>
+      </div>
+      <svg class="flex-shrink-0 text-slate-600 mt-1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>`;
+    list.appendChild(card);
+  });
+}
+
+function filterReports(){
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const filtered = allReports.filter(r=>
+    r.title.toLowerCase().includes(q) ||
+    r.sector.toLowerCase().includes(q) ||
+    r.date.toLowerCase().includes(q)
+  );
+  renderReports(filtered);
+}
+
+async function openReport(r){
+  currentReport = r;
+  document.getElementById('modalSector').textContent = r.sector;
+  document.getElementById('modalSector').className = 'sector-pill sector-'+r.sector.toUpperCase();
+  document.getElementById('modalDate').textContent = r.date;
+  document.getElementById('modalContent').innerHTML = '<div class="skeleton h-6 w-3/4 mb-3"></div><div class="skeleton h-4 w-full mb-2"></div><div class="skeleton h-4 w-5/6"></div>';
+  document.getElementById('reportModal').classList.add('open');
+  document.body.style.overflow='hidden';
+
+  try{
+    const res = await fetch('/api/reports/'+encodeURIComponent(r.filename),{headers:authHeaders(),credentials:'include'});
+    const data = await res.json();
+    document.getElementById('modalContent').innerHTML = marked.parse(data.content||'');
+  }catch(e){
+    document.getElementById('modalContent').innerHTML = '<p style="color:#f87171">Failed to load report.</p>';
+  }
+}
+
+function closeModal(){
+  document.getElementById('reportModal').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function downloadCurrent(){
+  if(!currentReport) return;
+  fetch('/api/reports/'+encodeURIComponent(currentReport.filename),{headers:authHeaders(),credentials:'include'})
+    .then(r=>r.json()).then(data=>{
+      const blob = new Blob([data.content],{type:'text/markdown'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = currentReport.filename;
+      a.click();
+    });
+}
+
+// Close modal on overlay click
+document.getElementById('reportModal').addEventListener('click',function(e){
+  if(e.target===this) closeModal();
+});
+
+loadReports();
+</script>
+</body>
+</html>

@@ -1,0 +1,273 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>FDS AI — Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Inter',sans-serif;background:#060b18;color:#e2e8f0;display:flex;align-items:center;justify-content:center;min-height:100vh;overflow:hidden}
+.bg-scene{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(0,80,200,.18) 0%,transparent 70%),radial-gradient(ellipse 60% 50% at 80% 80%,rgba(100,0,200,.12) 0%,transparent 60%),#060b18}
+.grid-lines{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(0,212,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.04) 1px,transparent 1px);background-size:52px 52px}
+.orb{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0;animation:floatOrb ease-in-out infinite}
+.orb-a{width:500px;height:500px;background:rgba(0,100,255,.09);top:-150px;right:-100px;animation-duration:11s}
+.orb-b{width:350px;height:350px;background:rgba(120,0,220,.08);bottom:-80px;left:-80px;animation-duration:14s;animation-direction:reverse}
+.orb-c{width:250px;height:250px;background:rgba(0,212,255,.06);top:45%;left:55%;animation-duration:8s;animation-delay:2s}
+@keyframes floatOrb{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-20px) scale(1.04)}}
+.scanline{position:fixed;left:0;right:0;height:2px;top:-2px;background:linear-gradient(90deg,transparent,rgba(0,212,255,.3),transparent);animation:scan 10s linear infinite;pointer-events:none;z-index:999}
+@keyframes scan{0%{top:-2px}100%{top:100vh}}
+.particles{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.particle{position:absolute;width:2px;height:2px;border-radius:50%;background:rgba(0,212,255,.6);animation:rise linear infinite}
+@keyframes rise{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:1}90%{opacity:.4}100%{transform:translateY(-10vh) scale(1);opacity:0}}
+.card-wrap{position:relative;z-index:10;width:100%;max-width:460px;padding:1.5rem}
+.card{background:rgba(10,16,32,.85);backdrop-filter:blur(28px);border:1px solid rgba(0,212,255,.18);border-radius:24px;padding:2.5rem 2.5rem 2rem;box-shadow:0 0 0 1px rgba(0,212,255,.06),0 32px 80px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.05);animation:cardIn .6s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes cardIn{from{opacity:0;transform:translateY(32px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.logo-ring{width:60px;height:60px;border-radius:16px;margin:0 auto 1.2rem;background:linear-gradient(135deg,rgba(0,80,255,.3),rgba(0,212,255,.2));border:1px solid rgba(0,212,255,.35);display:flex;align-items:center;justify-content:center;box-shadow:0 0 30px rgba(0,212,255,.2);animation:logoPulse 3s ease-in-out infinite}
+@keyframes logoPulse{0%,100%{box-shadow:0 0 30px rgba(0,212,255,.2)}50%{box-shadow:0 0 50px rgba(0,212,255,.45)}}
+.brand{font-family:'Space Grotesk',sans-serif;font-size:1.55rem;font-weight:700;text-align:center;margin-bottom:.25rem;background:linear-gradient(135deg,#00d4ff,#4488ff,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.tagline{text-align:center;font-size:.75rem;color:#475569;letter-spacing:.12em;text-transform:uppercase;margin-bottom:1.5rem;font-weight:500}
+/* Tabs */
+.tabs{display:flex;background:rgba(0,0,0,.3);border-radius:12px;padding:4px;margin-bottom:1.5rem;border:1px solid rgba(0,212,255,.1)}
+.tab{flex:1;padding:.55rem;text-align:center;font-size:.8rem;font-weight:600;border-radius:9px;cursor:pointer;transition:all .25s ease;color:#475569;letter-spacing:.04em}
+.tab.active{background:linear-gradient(135deg,rgba(0,80,255,.4),rgba(0,180,255,.3));color:#00d4ff;box-shadow:0 0 16px rgba(0,212,255,.2)}
+/* Forms */
+.form-panel{display:none}.form-panel.active{display:block}
+.field{margin-bottom:1.1rem}
+.field label{display:block;font-size:.7rem;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.4rem}
+.input-wrap{position:relative}
+.input-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#334155;transition:color .3s;pointer-events:none;display:flex;align-items:center}
+.field-input{width:100%;padding:.8rem 1rem .8rem 2.6rem;background:rgba(5,10,22,.8);border:1px solid rgba(0,212,255,.14);border-radius:11px;color:#e2e8f0;font-size:.88rem;font-family:'Inter',sans-serif;outline:none;transition:all .3s ease}
+.field-input::placeholder{color:#1e293b}
+.field-input:focus{border-color:rgba(0,212,255,.55);background:rgba(0,212,255,.03);box-shadow:0 0 0 3px rgba(0,212,255,.08)}
+.input-wrap:focus-within .input-icon{color:#00d4ff}
+.pw-toggle{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:#334155;cursor:pointer;transition:color .2s;background:none;border:none;padding:0;display:flex;align-items:center}
+.pw-toggle:hover{color:#00d4ff}
+.hint{font-size:.67rem;color:#334155;margin-top:.35rem}
+.hint.valid{color:#00c96a}.hint.invalid{color:#f87171}
+.strength-bar{display:flex;gap:3px;margin-top:.45rem}
+.strength-seg{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.07);transition:background .4s}
+.strength-seg.weak{background:#ef4444}.strength-seg.medium{background:#f59e0b}.strength-seg.strong{background:#00ff88}
+.rules-box{background:rgba(0,212,255,.04);border:1px solid rgba(0,212,255,.1);border-radius:10px;padding:.75rem 1rem;margin-bottom:1.2rem;font-size:.7rem}
+.rule{display:flex;align-items:center;gap:.45rem;color:#475569;margin-bottom:.25rem}
+.rule:last-child{margin-bottom:0}
+.btn-submit{width:100%;padding:.9rem;background:linear-gradient(135deg,#0050dd,#00aaff);border:none;border-radius:11px;color:#fff;font-size:.9rem;font-weight:700;font-family:'Inter',sans-serif;letter-spacing:.04em;cursor:pointer;position:relative;overflow:hidden;transition:all .3s ease;margin-top:.4rem;box-shadow:0 4px 24px rgba(0,100,255,.3)}
+.btn-submit::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);transition:left .5s ease}
+.btn-submit:hover::before{left:100%}
+.btn-submit:hover{transform:translateY(-2px);box-shadow:0 8px 36px rgba(0,150,255,.45)}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-spinner{display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.alert{border-radius:10px;padding:.7rem 1rem;font-size:.78rem;margin-bottom:1rem;display:none;align-items:center;gap:.55rem;animation:alertIn .3s ease}
+@keyframes alertIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.alert.error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;display:flex}
+.alert.success{background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.25);color:#6ee7b7;display:flex}
+.divider{display:flex;align-items:center;gap:.75rem;margin:1.2rem 0 .8rem;color:#1e293b;font-size:.68rem;letter-spacing:.08em}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(0,212,255,.1)}
+.card-footer{text-align:center;font-size:.7rem;color:#1e293b;letter-spacing:.04em}
+</style>
+</head>
+<body>
+<div class="bg-scene"></div>
+<div class="grid-lines"></div>
+<div class="orb orb-a"></div><div class="orb orb-b"></div><div class="orb orb-c"></div>
+<div class="scanline"></div>
+<div class="particles" id="particles"></div>
+
+<div class="card-wrap">
+  <div class="card">
+    <div class="logo-ring">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>
+      </svg>
+    </div>
+    <div class="brand">FDS AI</div>
+    <div class="tagline">Financial Deep Research Platform</div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" id="tabLogin" onclick="switchTab('login')">Sign In</div>
+      <div class="tab" id="tabSignup" onclick="switchTab('signup')">Create Account</div>
+    </div>
+
+    <!-- Alert -->
+    <div class="alert" id="alertBox">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="alertMsg"></span>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div class="form-panel active" id="loginPanel">
+      <form onsubmit="handleLogin(event)" novalidate>
+        <div class="field">
+          <label>Email Address</label>
+          <div class="input-wrap">
+            <input type="email" id="loginEmail" class="field-input" placeholder="yourname@gmail.com" autocomplete="email" oninput="validateField('loginEmail','loginEmailHint')"/>
+            <span class="input-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+          </div>
+          <div class="hint" id="loginEmailHint"></div>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <div class="input-wrap">
+            <input type="password" id="loginPassword" class="field-input" placeholder="Enter your password" autocomplete="current-password" oninput="validatePwField('loginPassword','loginPwHint','loginBar')"/>
+            <span class="input-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+            <button type="button" class="pw-toggle" onclick="togglePw('loginPassword','eyeL')"><svg id="eyeL" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+          <div class="strength-bar" id="loginBar"><div class="strength-seg" id="lseg1"></div><div class="strength-seg" id="lseg2"></div><div class="strength-seg" id="lseg3"></div><div class="strength-seg" id="lseg4"></div></div>
+          <div class="hint" id="loginPwHint"></div>
+        </div>
+        <button type="submit" class="btn-submit" id="loginBtn">
+          <span id="loginBtnText">Sign In</span>
+          <div class="btn-spinner" id="loginSpinner"></div>
+        </button>
+      </form>
+    </div>
+
+    <!-- SIGNUP FORM -->
+    <div class="form-panel" id="signupPanel">
+      <form onsubmit="handleSignup(event)" novalidate>
+        <div class="field">
+          <label>Full Name</label>
+          <div class="input-wrap">
+            <input type="text" id="signupName" class="field-input" placeholder="Your full name" autocomplete="name"/>
+            <span class="input-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Email Address</label>
+          <div class="input-wrap">
+            <input type="email" id="signupEmail" class="field-input" placeholder="yourname@gmail.com" autocomplete="email" oninput="validateField('signupEmail','signupEmailHint')"/>
+            <span class="input-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+          </div>
+          <div class="hint" id="signupEmailHint"></div>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <div class="input-wrap">
+            <input type="password" id="signupPassword" class="field-input" placeholder="Create a password" autocomplete="new-password" oninput="validatePwField('signupPassword','signupPwHint','signupBar')"/>
+            <span class="input-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+            <button type="button" class="pw-toggle" onclick="togglePw('signupPassword','eyeS')"><svg id="eyeS" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+          <div class="strength-bar" id="signupBar"><div class="strength-seg" id="sseg1"></div><div class="strength-seg" id="sseg2"></div><div class="strength-seg" id="sseg3"></div><div class="strength-seg" id="sseg4"></div></div>
+          <div class="hint" id="signupPwHint"></div>
+        </div>
+        <button type="submit" class="btn-submit" id="signupBtn">
+          <span id="signupBtnText">Create Account</span>
+          <div class="btn-spinner" id="signupSpinner"></div>
+        </button>
+      </form>
+    </div>
+
+    <div class="divider">SECURED ACCESS</div>
+    <div class="card-footer">FDS AI v1.0 &nbsp;·&nbsp; 12 Sectors &nbsp;·&nbsp; Authorized Access Only</div>
+  </div>
+</div>
+
+<script>
+// Particles
+(function(){
+  var c=document.getElementById('particles');
+  for(var i=0;i<28;i++){
+    var p=document.createElement('div');p.className='particle';
+    p.style.cssText='left:'+Math.random()*100+'%;width:'+(Math.random()*2+1)+'px;height:'+(Math.random()*2+1)+'px;animation-duration:'+(Math.random()*12+8)+'s;animation-delay:'+(Math.random()*10)+'s;opacity:'+(Math.random()*.5+.2);
+    c.appendChild(p);
+  }
+})();
+
+function switchTab(t){
+  document.getElementById('loginPanel').classList.toggle('active',t==='login');
+  document.getElementById('signupPanel').classList.toggle('active',t==='signup');
+  document.getElementById('tabLogin').classList.toggle('active',t==='login');
+  document.getElementById('tabSignup').classList.toggle('active',t==='signup');
+  hideAlert();
+}
+
+function isValidEmail(v){return /^[a-zA-Z0-9][a-zA-Z0-9._%+\-]*@gmail\.com$/.test(v);}
+function isValidPassword(v){return v.length>=6&&/^[A-Z]/.test(v)&&/[^a-zA-Z0-9]/.test(v);}
+function pwStrength(v){var s=0;if(v.length>=6)s++;if(v.length>=10)s++;if(/[^a-zA-Z0-9]/.test(v))s++;if(/[0-9]/.test(v)&&/[A-Z]/.test(v)&&/[a-z]/.test(v))s++;return s;}
+
+function validateField(inputId,hintId){
+  var v=document.getElementById(inputId).value.trim();
+  var h=document.getElementById(hintId);
+  if(!v){h.textContent='';h.className='hint';return;}
+  if(isValidEmail(v)){h.textContent='✓ Valid Gmail address';h.className='hint valid';}
+  else{h.textContent='✗ Must be a Gmail address ending with @gmail.com';h.className='hint invalid';}
+}
+
+function validatePwField(inputId,hintId,barId){
+  var v=document.getElementById(inputId).value;
+  var h=document.getElementById(hintId);
+  var prefix=barId==='loginBar'?'l':barId==='signupBar'?'s':'r';
+  var score=pwStrength(v);
+  var cls=score<=1?'weak':score<=2?'medium':'strong';
+  for(var i=1;i<=4;i++){var el=document.getElementById(prefix+'seg'+i);el.className='strength-seg'+(i<=score?' '+cls:'');}
+  if(!v){h.textContent='';h.className='hint';return;}
+  if(!/^[A-Z]/.test(v)){h.textContent='✗ Must start with a capital letter';h.className='hint invalid';}
+  else if(!/[^a-zA-Z0-9]/.test(v)){h.textContent='✗ Must contain a special character (@, #, !)';h.className='hint invalid';}
+  else if(v.length<6){h.textContent='✗ Too short (min 6 chars)';h.className='hint invalid';}
+  else{h.textContent='✓ Password format valid';h.className='hint valid';}
+}
+
+function togglePw(inputId,iconId){
+  var inp=document.getElementById(inputId);
+  var icon=document.getElementById(iconId);
+  if(inp.type==='password'){inp.type='text';icon.innerHTML='<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';}
+  else{inp.type='password';icon.innerHTML='<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';}
+}
+
+function showAlert(msg,type){var b=document.getElementById('alertBox');document.getElementById('alertMsg').textContent=msg;b.className='alert '+type;}
+function hideAlert(){document.getElementById('alertBox').className='alert';}
+
+function setLoading(btnId,spinnerId,textId,loading,label){
+  document.getElementById(btnId).disabled=loading;
+  document.getElementById(textId).style.display=loading?'none':'block';
+  document.getElementById(spinnerId).style.display=loading?'block':'none';
+}
+
+async function handleLogin(e){
+  e.preventDefault();hideAlert();
+  var email=document.getElementById('loginEmail').value.trim();
+  var password=document.getElementById('loginPassword').value;
+  if(!isValidEmail(email)){showAlert('Only Gmail addresses are allowed (yourname@gmail.com)','error');return;}
+  if(!isValidPassword(password)){showAlert('Password must start with a capital letter and contain a special character','error');return;}
+  setLoading('loginBtn','loginSpinner','loginBtnText',true);
+  try{
+    var res=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,password:password}),credentials:'include'});
+    var data=await res.json();
+    if(!res.ok){showAlert(data.detail||'Invalid email or password.','error');return;}
+    localStorage.setItem('fintel_token',data.token);
+    localStorage.setItem('fintel_email',data.email);
+    localStorage.setItem('fintel_name',data.name||'');
+    showAlert('Access granted. Redirecting…','success');
+    setTimeout(function(){window.location.href='/';},900);
+  }catch(err){showAlert('Cannot reach the server. Is the backend running?','error');}
+  finally{setLoading('loginBtn','loginSpinner','loginBtnText',false);}
+}
+
+async function handleSignup(e){
+  e.preventDefault();hideAlert();
+  var name=document.getElementById('signupName').value.trim();
+  var email=document.getElementById('signupEmail').value.trim();
+  var password=document.getElementById('signupPassword').value;
+  if(!name){showAlert('Please enter your full name.','error');return;}
+  if(!isValidEmail(email)){showAlert('Only Gmail addresses are allowed (yourname@gmail.com)','error');return;}
+  if(!isValidPassword(password)){showAlert('Password must start with a capital letter and contain a special character.','error');return;}
+  setLoading('signupBtn','signupSpinner','signupBtnText',true);
+  try{
+    var res=await fetch('/api/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:name,email:email,password:password}),credentials:'include'});
+    var data=await res.json();
+    if(!res.ok){showAlert(data.detail||'Signup failed.','error');return;}
+    localStorage.setItem('fintel_token',data.token);
+    localStorage.setItem('fintel_email',data.email);
+    localStorage.setItem('fintel_name',data.name||'');
+    showAlert('Account created! Redirecting…','success');
+    setTimeout(function(){window.location.href='/';},900);
+  }catch(err){showAlert('Cannot reach the server. Is the backend running?','error');}
+  finally{setLoading('signupBtn','signupSpinner','signupBtnText',false);}
+}
+</script>
+</body>
+</html>

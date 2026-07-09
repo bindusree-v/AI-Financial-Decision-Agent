@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>FDS AI — Admin Panel</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#060b18;color:#e2e8f0;min-height:100vh;overflow-x:hidden}
+.bg-grid{background-image:linear-gradient(rgba(0,212,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.03) 1px,transparent 1px);background-size:48px 48px}
+.glass{background:rgba(13,20,36,.78);backdrop-filter:blur(18px);border:1px solid rgba(0,212,255,.15);border-radius:16px}
+.glass-nav{background:rgba(10,15,30,.94);backdrop-filter:blur(24px);border-bottom:1px solid rgba(0,212,255,.1)}
+.orb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0}
+.orb-1{width:500px;height:500px;background:rgba(0,102,255,.07);top:-150px;right:-100px;animation:float 9s ease-in-out infinite}
+.orb-2{width:350px;height:350px;background:rgba(124,58,237,.06);bottom:0;left:-80px;animation:float 12s ease-in-out infinite reverse}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+.scanline{position:fixed;left:0;right:0;height:2px;top:-2px;background:linear-gradient(90deg,transparent,rgba(0,212,255,.25),transparent);animation:scan 10s linear infinite;pointer-events:none;z-index:999}
+@keyframes scan{0%{top:-2px}100%{top:100vh}}
+.content-layer{position:relative;z-index:1}
+.gradient-text{background:linear-gradient(135deg,#00d4ff,#0066ff,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.nav-dot{width:10px;height:10px;border-radius:50%;background:#f59e0b;display:inline-block;position:relative}
+.nav-dot::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;border:1px solid rgba(245,158,11,.5);animation:pulse-ring 2s ease-out infinite}
+@keyframes pulse-ring{0%{transform:translate(-50%,-50%) scale(.8);opacity:1}100%{transform:translate(-50%,-50%) scale(2.4);opacity:0}}
+/* Stat cards */
+.stat-card{background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.12);border-radius:14px;padding:1.4rem 1.6rem;transition:all .25s ease}
+.stat-card:hover{border-color:rgba(0,212,255,.3);transform:translateY(-3px)}
+.stat-num{font-size:2.2rem;font-weight:700;font-family:'Courier New',monospace;line-height:1}
+.stat-label{font-size:.7rem;color:#64748b;margin-top:.35rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase}
+/* Table */
+.data-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.data-table th{background:rgba(0,212,255,.08);color:#00d4ff;padding:.6rem 1rem;text-align:left;border-bottom:1px solid rgba(0,212,255,.15);font-weight:600;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase}
+.data-table td{padding:.55rem 1rem;border-bottom:1px solid rgba(0,212,255,.06);color:#cbd5e1}
+.data-table tr:hover td{background:rgba(0,212,255,.04)}
+/* Login overlay */
+.login-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);z-index:200;display:flex;align-items:center;justify-content:center}
+.login-card{background:rgba(10,16,32,.95);border:1px solid rgba(245,158,11,.3);border-radius:20px;padding:2.5rem;width:100%;max-width:380px;box-shadow:0 0 60px rgba(245,158,11,.1)}
+.field-input{width:100%;padding:.8rem 1rem;background:rgba(5,10,22,.8);border:1px solid rgba(245,158,11,.2);border-radius:11px;color:#e2e8f0;font-size:.88rem;font-family:'Inter',sans-serif;outline:none;transition:all .3s}
+.field-input:focus{border-color:rgba(245,158,11,.6);box-shadow:0 0 0 3px rgba(245,158,11,.08)}
+.btn-admin{width:100%;padding:.9rem;background:linear-gradient(135deg,#b45309,#f59e0b);border:none;border-radius:11px;color:#fff;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .3s}
+.btn-admin:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(245,158,11,.3)}
+.btn-admin:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.alert{border-radius:10px;padding:.65rem 1rem;font-size:.78rem;margin-bottom:1rem;display:none;align-items:center;gap:.5rem}
+.alert.error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;display:flex}
+/* Bar chart */
+.bar-row{display:flex;align-items:center;gap:.75rem;margin-bottom:.5rem}
+.bar-label{font-size:.72rem;color:#94a3b8;width:100px;flex-shrink:0;text-align:right}
+.bar-track{flex:1;height:8px;background:rgba(0,212,255,.08);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#0055dd,#00d4ff);transition:width .8s ease}
+/* Badge */
+.badge{display:inline-flex;align-items:center;padding:.15rem .55rem;border-radius:20px;font-size:.62rem;font-weight:700;letter-spacing:.05em}
+.badge-green{background:rgba(0,255,136,.12);color:#00ff88;border:1px solid rgba(0,255,136,.25)}
+.badge-amber{background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.25)}
+.badge-cyan{background:rgba(0,212,255,.12);color:#00d4ff;border:1px solid rgba(0,212,255,.25)}
+.spinner{display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.skeleton{background:linear-gradient(90deg,rgba(0,212,255,.05) 25%,rgba(0,212,255,.1) 50%,rgba(0,212,255,.05) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
+@keyframes shimmer{0%{background-position:200% center}100%{background-position:-200% center}}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:rgba(0,0,0,.2)}::-webkit-scrollbar-thumb{background:rgba(0,212,255,.28);border-radius:3px}
+</style>
+</head>
+<body class="bg-grid">
+<div class="orb orb-1"></div><div class="orb orb-2"></div>
+<div class="scanline"></div>
+
+<!-- Admin Login Overlay -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <div class="text-center mb-6">
+      <div style="font-size:2rem;margin-bottom:.5rem">🛡️</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:700;color:#f59e0b">Admin Panel</div>
+      <div style="font-size:.75rem;color:#475569;margin-top:.25rem">FDS AI — Restricted Access</div>
+    </div>
+    <div class="alert" id="loginAlert"><span id="loginAlertMsg"></span></div>
+    <form onsubmit="handleAdminLogin(event)" novalidate>
+      <div style="margin-bottom:1rem">
+        <label style="display:block;font-size:.7rem;font-weight:600;color:#64748b;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.4rem">Admin Password</label>
+        <input type="password" id="adminPwInput" class="field-input" placeholder="Enter admin password" autocomplete="current-password"/>
+      </div>
+      <button type="submit" class="btn-admin" id="adminLoginBtn">
+        <span id="adminLoginText">Access Admin Panel</span>
+        <div class="spinner" id="adminLoginSpinner"></div>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Nav -->
+<nav class="glass-nav fixed top-0 left-0 right-0 z-50 px-6 py-3 flex items-center justify-between">
+  <div class="flex items-center gap-3">
+    <span class="nav-dot"></span>
+    <span style="font-size:.85rem;font-weight:700;letter-spacing:.1em;color:#f59e0b;text-transform:uppercase">FDS AI Admin</span>
+    <span class="text-xs text-slate-600">/ Control Panel</span>
+  </div>
+  <div class="flex items-center gap-3">
+    <span id="lastRefresh" class="text-xs text-slate-600"></span>
+    <button onclick="loadStats()" class="text-xs text-slate-500 hover:text-cyan-400 transition-colors border border-slate-700 hover:border-cyan-500/40 px-2 py-1 rounded-lg">↻ Refresh</button>
+    <button onclick="adminLogout()" class="text-xs text-slate-500 hover:text-red-400 transition-colors border border-slate-700 hover:border-red-500/40 px-2 py-1 rounded-lg">Logout</button>
+  </div>
+</nav>
+
+<div class="content-layer pt-20 pb-16 px-4 max-w-6xl mx-auto">
+
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold gradient-text mb-1">Admin Dashboard</h1>
+    <p class="text-slate-500 text-sm">Platform overview and user management</p>
+  </div>
+
+  <!-- Stats row -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="stat-card"><div class="stat-num text-cyan-400" id="sTotalUsers"><div class="skeleton h-8 w-12"></div></div><div class="stat-label">Total Users</div></div>
+    <div class="stat-card"><div class="stat-num text-purple-400" id="sTotalReports"><div class="skeleton h-8 w-12"></div></div><div class="stat-label">Reports Generated</div></div>
+    <div class="stat-card"><div class="stat-num text-green-400" id="sTotalQueries"><div class="skeleton h-8 w-12"></div></div><div class="stat-label">Total Queries</div></div>
+    <div class="stat-card"><div class="stat-num text-amber-400">12</div><div class="stat-label">Active Sectors</div></div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+
+    <!-- Sector breakdown -->
+    <div class="glass p-5">
+      <div class="text-cyan-400 text-xs font-semibold tracking-wide mb-4">SECTOR ACTIVITY</div>
+      <div id="sectorChart"><div class="skeleton h-4 w-full mb-2"></div><div class="skeleton h-4 w-4/5 mb-2"></div><div class="skeleton h-4 w-3/5"></div></div>
+    </div>
+
+    <!-- Most active users -->
+    <div class="glass p-5">
+      <div class="text-cyan-400 text-xs font-semibold tracking-wide mb-4">MOST ACTIVE USERS</div>
+      <div id="activeUsers"><div class="skeleton h-4 w-full mb-2"></div><div class="skeleton h-4 w-4/5 mb-2"></div><div class="skeleton h-4 w-3/5"></div></div>
+    </div>
+
+  </div>
+
+  <!-- Users table -->
+  <div class="glass p-5 mb-6">
+    <div class="text-cyan-400 text-xs font-semibold tracking-wide mb-4">REGISTERED USERS</div>
+    <div class="overflow-x-auto">
+      <table class="data-table" id="usersTable">
+        <thead><tr><th>Name</th><th>Email</th><th>Joined</th><th>Status</th></tr></thead>
+        <tbody id="usersBody"><tr><td colspan="4"><div class="skeleton h-4 w-full my-1"></div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Recent activity -->
+  <div class="glass p-5">
+    <div class="text-cyan-400 text-xs font-semibold tracking-wide mb-4">RECENT ACTIVITY</div>
+    <div class="overflow-x-auto">
+      <table class="data-table" id="activityTable">
+        <thead><tr><th>Time</th><th>User</th><th>Sector</th><th>Query</th></tr></thead>
+        <tbody id="activityBody"><tr><td colspan="4"><div class="skeleton h-4 w-full my-1"></div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+var adminToken = sessionStorage.getItem('fds_admin_token');
+if(adminToken) document.getElementById('loginOverlay').style.display='none';
+
+function showLoginAlert(msg){ var b=document.getElementById('loginAlert'); document.getElementById('loginAlertMsg').textContent=msg; b.className='alert error'; }
+
+async function handleAdminLogin(e){
+  e.preventDefault();
+  var pw = document.getElementById('adminPwInput').value;
+  if(!pw){ showLoginAlert('Please enter the admin password.'); return; }
+  var btn=document.getElementById('adminLoginBtn');
+  btn.disabled=true;
+  document.getElementById('adminLoginText').style.display='none';
+  document.getElementById('adminLoginSpinner').style.display='block';
+  try{
+    var res = await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw}),credentials:'include'});
+    var data = await res.json();
+    if(!res.ok){ showLoginAlert(data.detail||'Invalid password.'); return; }
+    adminToken = data.token;
+    sessionStorage.setItem('fds_admin_token',adminToken);
+    document.getElementById('loginOverlay').style.display='none';
+    loadStats();
+  }catch(err){ showLoginAlert('Cannot reach server.'); }
+  finally{ btn.disabled=false; document.getElementById('adminLoginText').style.display='block'; document.getElementById('adminLoginSpinner').style.display='none'; }
+}
+
+async function adminLogout(){
+  try{ await fetch('/api/admin/logout',{method:'POST',headers:{'Authorization':'Bearer '+adminToken},credentials:'include'}); }catch(e){}
+  sessionStorage.removeItem('fds_admin_token');
+  adminToken=null;
+  document.getElementById('loginOverlay').style.display='flex';
+}
+
+function adminHeaders(){ return {'Content-Type':'application/json','Authorization':'Bearer '+(adminToken||'')}; }
+
+async function loadStats(){
+  if(!adminToken) return;
+  try{
+    var res = await fetch('/api/admin/stats',{headers:adminHeaders(),credentials:'include'});
+    if(res.status===401){ adminLogout(); return; }
+    var d = await res.json();
+    document.getElementById('sTotalUsers').textContent = d.total_users;
+    document.getElementById('sTotalReports').textContent = d.total_reports;
+    document.getElementById('sTotalQueries').textContent = d.total_queries;
+    document.getElementById('lastRefresh').textContent = 'Updated '+new Date().toLocaleTimeString();
+
+    // Sector chart
+    var maxSector = d.sector_breakdown[0]?.count||1;
+    document.getElementById('sectorChart').innerHTML = (d.sector_breakdown.length?d.sector_breakdown:d.report_sectors).slice(0,8).map(function(s){
+      var pct = Math.round((s.count/maxSector)*100);
+      return '<div class="bar-row"><span class="bar-label">'+s.sector+'</span><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><span style="font-size:.7rem;color:#64748b;width:24px;text-align:right">'+s.count+'</span></div>';
+    }).join('') || '<div class="text-xs text-slate-600">No data yet</div>';
+
+    // Active users
+    document.getElementById('activeUsers').innerHTML = d.most_active.length ? d.most_active.map(function(u,i){
+      return '<div class="flex items-center justify-between mb-2"><div class="flex items-center gap-2"><span style="font-size:.7rem;color:#475569;width:16px">'+(i+1)+'.</span><span class="text-xs text-slate-300">'+u.email+'</span></div><span class="badge badge-cyan">'+u.count+' queries</span></div>';
+    }).join('') : '<div class="text-xs text-slate-600">No activity yet</div>';
+
+    // Users table
+    document.getElementById('usersBody').innerHTML = d.users.map(function(u){
+      return '<tr><td class="font-medium">'+u.name+'</td><td class="text-slate-400">'+u.email+'</td><td class="text-slate-500">'+u.joined+'</td><td><span class="badge badge-green">Active</span></td></tr>';
+    }).join('') || '<tr><td colspan="4" class="text-slate-600 text-center py-4">No users</td></tr>';
+
+    // Activity table
+    document.getElementById('activityBody').innerHTML = d.recent_activity.length ? d.recent_activity.map(function(a){
+      return '<tr><td class="text-slate-500 text-xs">'+a.timestamp+'</td><td class="text-slate-300">'+a.email+'</td><td><span class="badge badge-amber">'+(a.sector||'—')+'</span></td><td class="text-slate-400 max-w-xs truncate" title="'+a.query+'">'+a.query+'</td></tr>';
+    }).join('') : '<tr><td colspan="4" class="text-slate-600 text-center py-4">No activity yet</td></tr>';
+
+  }catch(err){ console.error(err); }
+}
+
+if(adminToken) loadStats();
+// Auto-refresh every 30s
+setInterval(function(){ if(adminToken) loadStats(); }, 30000);
+</script>
+</body>
+</html>
