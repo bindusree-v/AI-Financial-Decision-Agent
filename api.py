@@ -66,10 +66,32 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # ── App ───────────────────────────────────────────────────────────────────────
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Pre-warm heavy models on startup so first request is fast."""
+    import asyncio
+    loop = asyncio.get_running_loop()
+    try:
+        logger.warning("Pre-warming sentence-transformer embedding model...")
+        from chromadb.utils import embedding_functions
+        from config import config as _config
+        def _warm():
+            embedding_functions.SentenceTransformerEmbeddingFunction(
+                model_name=_config.EMBEDDING_MODEL
+            )
+        await loop.run_in_executor(None, _warm)
+        logger.warning("Embedding model ready.")
+    except Exception as e:
+        logger.warning("Model pre-warm failed (non-fatal): %s", e)
+    yield
+
 app = FastAPI(
     title="Financial Deep Research Agent API",
     version="1.0.0",
     description="Multi-step iterative financial research powered by LLM synthesis",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -701,5 +723,12 @@ async def serve_ui():
 if __name__ == "__main__":
     import uvicorn
 
+    try:
+        config.validate()
+    except EnvironmentError as e:
+        print(f"[ERROR] Configuration: {e}")
+        print("Copy .env.example to .env and fill in your API keys.")
+        sys.exit(1)
+
     port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("api:app", host="0.0.0.0", port=port, reload=False, log_level="info")
+    uvicorn.run("api:app", host="0.0.0.0", port=port, reload=False, log_level="warning")
