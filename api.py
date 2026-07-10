@@ -49,14 +49,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
-from agents.it_agent import ITSectorAgent
-from agents.pharma_agent import PharmaSectorAgent
-from agents.finance_agent import FinanceAgent
-from agents.ecommerce_agent import EcommerceAgent
-from agents.automotive_agent import AutomotiveAgent
-from agents.healthcare_agent import HealthcareAgent
 from config import config
-from core.router import QueryRouter
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -66,32 +59,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # ── App ───────────────────────────────────────────────────────────────────────
-from contextlib import asynccontextmanager
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Pre-warm heavy models on startup so first request is fast."""
-    import asyncio
-    loop = asyncio.get_running_loop()
-    try:
-        logger.warning("Pre-warming sentence-transformer embedding model...")
-        from chromadb.utils import embedding_functions
-        from config import config as _config
-        def _warm():
-            embedding_functions.SentenceTransformerEmbeddingFunction(
-                model_name=_config.EMBEDDING_MODEL
-            )
-        await loop.run_in_executor(None, _warm)
-        logger.warning("Embedding model ready.")
-    except Exception as e:
-        logger.warning("Model pre-warm failed (non-fatal): %s", e)
-    yield
-
 app = FastAPI(
     title="Financial Deep Research Agent API",
     version="1.0.0",
     description="Multi-step iterative financial research powered by LLM synthesis",
-    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -152,11 +123,18 @@ def require_auth(request: Request) -> str:
     return _sessions[token]
 
 # ── Router (initialised once) ─────────────────────────────────────────────────
-_router: QueryRouter | None = None
+_router = None
 
-def get_router() -> QueryRouter:
+def get_router():
     global _router
     if _router is None:
+        from core.router import QueryRouter
+        from agents.it_agent import ITSectorAgent
+        from agents.pharma_agent import PharmaSectorAgent
+        from agents.finance_agent import FinanceAgent
+        from agents.ecommerce_agent import EcommerceAgent
+        from agents.automotive_agent import AutomotiveAgent
+        from agents.healthcare_agent import HealthcareAgent
         _router = QueryRouter()
         _router.register_agent("IT", ITSectorAgent())
         _router.register_agent("Pharma", PharmaSectorAgent())
