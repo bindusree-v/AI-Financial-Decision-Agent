@@ -651,7 +651,7 @@ async function fetchPlan(query) {
     renderPlan(data);
     setBtn(false);
   } catch (e) {
-    showError('Could not reach the API. Is the backend running on port 8000?');
+    showError('Could not reach the API. Please try again or check your connection.');
     setBtn(false);
   }
 }

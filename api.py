@@ -701,12 +701,5 @@ async def serve_ui():
 if __name__ == "__main__":
     import uvicorn
 
-    try:
-        config.validate()
-    except EnvironmentError as e:
-        print(f"[ERROR] Configuration: {e}")
-        print("Copy .env.example to .env and fill in your API keys.")
-        sys.exit(1)
-
     port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("api:app", host="0.0.0.0", port=port, reload=False, log_level="warning")
+    uvicorn.run("api:app", host="0.0.0.0", port=port, reload=False, log_level="info")
