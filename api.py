@@ -1,22 +1,6 @@
 """
 FastAPI Backend for Financial Deep Research Agent
-
-Endpoints:
-  POST /api/signup              — Register a new account
-  POST /api/login               — Authenticate with email + password
-  POST /api/logout              — Invalidate session token
-  GET  /api/profile             — Get current user profile
-  POST /api/change-password     — Change password
-  GET  /api/reports             — List all saved reports for current user
-  GET  /api/reports/{filename}  — Get content of a specific report
-  GET  /api/stock/{ticker}      — Live stock price + info
-  POST /api/plan                — Analyze query and return research plan
-  POST /api/research            — Execute research (SSE stream)
-  GET  /api/health              — Health check
-  GET  /                        — Serve the frontend UI
-  GET  /login                   — Serve the login / signup page
-  GET  /history                 — Serve the report history page
-  GET  /profile                 — Serve the user profile page
+...
 """
 from __future__ import annotations
 
@@ -31,6 +15,10 @@ import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, AsyncGenerator
+
+# Disable chromadb telemetry to suppress noisy startup errors
+os.environ.setdefault("ANONYMIZED_TELEMETRY", "false")
+os.environ.setdefault("CHROMA_TELEMETRY", "false")
 
 # ── Activity log file ─────────────────────────────────────────────────────────
 ACTIVITY_FILE = Path(__file__).parent / "activity_log.json"
@@ -370,7 +358,6 @@ async def get_stock(ticker: str, email: str = Depends(require_auth)):
         except (TypeError, ValueError):
             return None
     try:
-        loop = asyncio.get_event_loop()
         def fetch():
             t = yf.Ticker(ticker.upper())
             info = t.info
@@ -395,6 +382,7 @@ async def get_stock(ticker: str, email: str = Depends(require_auth)):
                 "currency":   info.get("currency", "USD"),
                 "sparkline":  sparkline,
             }
+        loop = asyncio.get_running_loop()
         data = await loop.run_in_executor(None, fetch)
         return data
     except Exception as exc:
@@ -416,7 +404,7 @@ async def get_plan(req: PlanRequest, email: str = Depends(require_auth)):
         raise HTTPException(status_code=400, detail="Query must not be empty.")
 
     router = get_router()
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
 
     try:
         sector, agent, message = await loop.run_in_executor(None, router.route, req.query)
@@ -449,7 +437,7 @@ async def run_research(req: ResearchRequest, email: str = Depends(require_auth))
             return f"event: {event}\ndata: {json.dumps(data)}\n\n"
 
         router = get_router()
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
 
         try:
             sector, agent, message = await loop.run_in_executor(None, router.route, req.query)
