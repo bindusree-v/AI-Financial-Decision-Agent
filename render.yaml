@@ -4,7 +4,7 @@ services:
     runtime: python
     pythonVersion: "3.11.9"
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn api:app --host 0.0.0.0 --port $PORT
+    startCommand: python api.py
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.9"
