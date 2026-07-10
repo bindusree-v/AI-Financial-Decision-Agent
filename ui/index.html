@@ -529,6 +529,22 @@ function authHeaders() {
   };
 }
 
+// Safe fetch wrapper — clears stale token and redirects on 401
+async function authFetch(url, options) {
+  options = options || {};
+  options.headers = options.headers || authHeaders();
+  options.credentials = options.credentials || 'include';
+  const res = await fetch(url, options);
+  if (res.status === 401) {
+    localStorage.removeItem('fintel_token');
+    localStorage.removeItem('fintel_email');
+    localStorage.removeItem('fintel_name');
+    window.location.href = '/login';
+    throw new Error('Session expired');
+  }
+  return res;
+}
+
 // Health check
 async function checkHealth() {
   try {
@@ -635,7 +651,7 @@ async function startAnalysis() {
 async function fetchPlan(query) {
   setBtn(true);
   try {
-    const res = await fetch(API + '/api/plan', {
+    const res = await authFetch(API + '/api/plan', {
       method: 'POST',
       headers: authHeaders(),
       body: JSON.stringify({ query }),
@@ -643,7 +659,6 @@ async function fetchPlan(query) {
     });
     const data = await res.json();
     if (!res.ok) {
-      if (res.status === 401) { window.location.href = '/login'; return; }
       showError(data.detail || 'Planning failed.'); setBtn(false); return;
     }
     if (!data.routed) { showError(data.message || 'Query could not be routed.'); setBtn(false); return; }
@@ -651,7 +666,9 @@ async function fetchPlan(query) {
     renderPlan(data);
     setBtn(false);
   } catch (e) {
-    showError('Could not reach the API. Please try again or check your connection.');
+    if (e.message !== 'Session expired') {
+      showError('Could not reach the API. Please try again.');
+    }
     setBtn(false);
   }
 }
@@ -719,7 +736,7 @@ function startResearch(query, plan) {
   document.getElementById('reportSection').classList.add('hidden');
   startTimer();
 
-  fetch(API + '/api/research', {
+  authFetch(API + '/api/research', {
     method: 'POST',
     headers: authHeaders(),
     body: JSON.stringify({ query: query, plan: plan, skip_approval: !approvalEnabled }),
@@ -905,7 +922,7 @@ async function fetchStock(ticker){
   }
 
   try{
-    var res = await fetch('/api/stock/'+encodeURIComponent(ticker),{headers:authHeaders(),credentials:'include'});
+    var res = await authFetch('/api/stock/'+encodeURIComponent(ticker),{headers:authHeaders(),credentials:'include'});
     if(!res.ok) throw new Error('fetch failed');
     var d = await res.json();
     var isUp = d.change_pct >= 0;
